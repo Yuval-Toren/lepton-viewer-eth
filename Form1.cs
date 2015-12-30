@@ -281,7 +281,7 @@ namespace PC_Terminal
         }
         public void reading(Int32 median)
         {
-            var arbitary_readSize = 6;
+            var arbitary_readSize = 4;
             var bytey = tcpClient.ReceiveBufferSize;
             var rec_buff = new byte[bytey];
             //serialPort1.DtrEnable = false;
