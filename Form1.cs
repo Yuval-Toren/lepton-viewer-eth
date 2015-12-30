@@ -22,22 +22,18 @@ namespace PC_Terminal
         byte[] receive_buff = new byte[9600];
         Color[] colors = new Color[255];
         Int32 gen_median = 0;
-        string ip;
-        Int32 port;
         UInt32[,] lepton_image = new UInt32[80, 80];
         UInt32[,] draw_lepton_image = new UInt32[80, 80];
         static int MAX_IMAGE_SIZE = (80 * 60 * 2);
         byte[] image_buffer = new byte[MAX_IMAGE_SIZE];
         int image_buffer_index = 0;
         int parser_state = 0;
-        int request_next_image = 1;
         int parser_i;
         int parser_j;
         char[] buf = new char[10240];
         Random rand = new Random();
         TcpClient tcpClient = new TcpClient();
         NetworkStream netstream;
-        int rrr = 0;
 
         public Form1()
         {
@@ -82,7 +78,6 @@ namespace PC_Terminal
         {
             String A = StringReceive;
             StringReceive = "";
-            Int32 median = init();
 
             if (BtnOnOff.Text == "Connect")
             {
@@ -98,7 +93,7 @@ namespace PC_Terminal
                         tcpClient.ReceiveBufferSize = 9606;
                         tcpClient.NoDelay = false;
                         netstream = tcpClient.GetStream();
-                        reading(median);
+                        reading();
                     });
 
                     BtnOnOff.Text = "Disconnect";
@@ -167,7 +162,7 @@ namespace PC_Terminal
                 }
             }
         }
-        public void parse_binary(byte input, Int32 median)
+        public void parse_binary(byte input)
         {
             switch (parser_state)
             {
@@ -228,14 +223,7 @@ namespace PC_Terminal
                     {
                         if (image_buffer_index % 2 == 0)
                         {
-                            if (input > 50)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                lepton_image[parser_i, parser_j] = (UInt32)input << 8;
-                            }
+                            lepton_image[parser_i, parser_j] = (UInt32)input << 8;
                         }
                         else
                         {
@@ -261,9 +249,8 @@ namespace PC_Terminal
                             copy_image();
                             //norm_image();
                             scale_image();
-                            writing(median);
+                            writing();
                             parser_state = 0;
-                            request_next_image = 1;
                             image_buffer_index = 0;
                         }
                     }
@@ -279,7 +266,7 @@ namespace PC_Terminal
             //      timeout_counter = 0;
             //  }
         }
-        public void reading(Int32 median)
+        public void reading()
         {
             var arbitary_readSize = 4;
             var bytey = tcpClient.ReceiveBufferSize;
@@ -301,7 +288,7 @@ namespace PC_Terminal
                         for (var receive_buff_cnt = 0; receive_buff_cnt < 4; receive_buff_cnt++)
                         {
                             var input = rec_buff[receive_buff_cnt];
-                            parse_binary(input, median);
+                            parse_binary(input);
                         }
                     }
                 }
@@ -318,12 +305,11 @@ namespace PC_Terminal
                 }
             }
         }
-        public void writing(Int32 median)
+        public void writing()
         {
             var img = new Bitmap(pictureBox1.Width, pictureBox1.Height);
 
             int y, x;
-            int cnt = 0;
             for (x = 0; x < 60; x++)
             {
                 for (y = 0; y < 80; y++)
@@ -530,17 +516,14 @@ namespace PC_Terminal
             {
                 if (listBox1.SelectedIndex == 0)
                 {
-                    gen_median = median;
                     label6.Text = "Coldest value: " + gen_median;
                 }
                 else if (listBox1.SelectedIndex == 1)
                 {
-                    gen_median = median;
                     label6.Text = "Heatest value: " + gen_median;
                 }
                 else if (listBox1.SelectedIndex == 2)
                 {
-                    gen_median = median / (80 * 60);
                     label6.Text = "Median value: " + gen_median;
                 }
                 else if (listBox1.SelectedIndex == 3)
@@ -548,7 +531,6 @@ namespace PC_Terminal
                     label6.Text = "";
                 }
 
-                request_next_image = 1;
                 label1.Text = "" + trackBar1.Value;
 
                 pictureBox1.Image = img;
