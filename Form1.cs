@@ -90,6 +90,8 @@ namespace PC_Terminal
                     var proc = Task.Factory.StartNew(() =>
                     {
                         tcpClient.Connect("192.168.10.9", 26);
+                        // 9606 is not a mistake, we have 6 garbage
+                        // bytes from the rss232->ethernet adapter.
                         tcpClient.ReceiveBufferSize = 9606;
                         tcpClient.NoDelay = false;
                         netstream = tcpClient.GetStream();
@@ -145,6 +147,7 @@ namespace PC_Terminal
                 for (j = 0; j < 80; j++)
                 {
                     draw_lepton_image[i, j] = draw_lepton_image[i, j] - min;
+                    // Required noramlization
                     draw_lepton_image[i, j] = ((draw_lepton_image[i, j] * 255) / (max - min)) + 1;
                 }
             }
@@ -159,6 +162,42 @@ namespace PC_Terminal
                 for (j = 0; j < 80; j++)
                 {
                     draw_lepton_image[i, j] = lepton_image[i, j];
+                }
+            }
+        }
+        public void reading()
+        {
+            // It's 4 because that gives out the best result
+            // --> figured out by manually testing values
+            var arbitary_readSize = 4;
+            var rec_buff = new byte[tcpClient.ReceiveBufferSize];
+
+            while (true)
+            {
+                try
+                {
+                    if (netstream.CanRead)
+                    {
+                        netstream.Read(rec_buff, 0, arbitary_readSize);
+                        for (var receive_buff_cnt = 0;
+                            receive_buff_cnt < arbitary_readSize;
+                            receive_buff_cnt++)
+                        {
+                            var input = rec_buff[receive_buff_cnt];
+                            parse_binary(input);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.Print("Exception: {0}", e);
+                    Invoke((Action)(() =>
+                    {
+                        ts1.Text = "Error: Cannot close this comm";
+                        // XXX this shows up twice every two seconds,
+                        // and is quite annying, therefore commented out.
+                        //MessageBox.Show(this, "Cannot close this comm.\nIs possible to be unpluged usb adaptor", "Open comm error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
                 }
             }
         }
@@ -223,7 +262,11 @@ namespace PC_Terminal
                     {
                         if (image_buffer_index % 2 == 0)
                         {
-                            lepton_image[parser_i, parser_j] = (UInt32)input << 8;
+                            // A conditional that we are trying to get rid off.
+                            if (input > 50)
+                                break;
+                            else 
+                                lepton_image[parser_i, parser_j] = (UInt32)input << 8;
                         }
                         else
                         {
@@ -266,45 +309,6 @@ namespace PC_Terminal
             //      timeout_counter = 0;
             //  }
         }
-        public void reading()
-        {
-            var arbitary_readSize = 4;
-            var bytey = tcpClient.ReceiveBufferSize;
-            var rec_buff = new byte[bytey];
-            //serialPort1.DtrEnable = false;
-            //serialPort1.RtsEnable = false;
-            //serialPort1.Open();
-
-            while (true)
-            {
-                try
-                {
-                    Debug.Print("Can NetStream Read? {0}", netstream.CanRead);
-                    if (netstream.CanRead)
-                    {
-                        //netstream.ReadTimeout = 1000;
-                        netstream.Read(rec_buff, 0, arbitary_readSize);
-                        //serialPort1.Read(rec_buff, 0, 4);
-                        for (var receive_buff_cnt = 0; receive_buff_cnt < 4; receive_buff_cnt++)
-                        {
-                            var input = rec_buff[receive_buff_cnt];
-                            parse_binary(input);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.Print("Exception: {0}", e);
-                    Invoke((Action)(() =>
-                    {
-                        ts1.Text = "Error: Cannot close this comm";
-                        // XXX this shows up twice every two seconds,
-                        // and is quite annying, therefore commented out.
-                        //MessageBox.Show(this, "Cannot close this comm.\nIs possible to be unpluged usb adaptor", "Open comm error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }));
-                }
-            }
-        }
         public void writing()
         {
             var img = new Bitmap(pictureBox1.Width, pictureBox1.Height);
@@ -318,86 +322,7 @@ namespace PC_Terminal
                     {
                         int data;
                         Color newColor;
-                        //if (((int)draw_lepton_image[x, y] & 0xC0) != 0)
-                        //    cnt++;
                         data = (int)(draw_lepton_image[x, y]);
-                        //cnt += 1;
-                        //if (color_palete.Checked == false)
-                        //{
-                        //    if (listBox1.SelectedIndex == 0)
-                        //    {
-                        //        if (median > data)
-                        //        {
-                        //            median = data;
-                        //        }
-                        //        data = data - gen_median;
-                        //    }
-                        //    else if (listBox1.SelectedIndex == 1)
-                        //    {
-                        //        if (median < data)
-                        //        {
-                        //            median = data;
-                        //        }
-                        //        data = 255 - (gen_median - data);
-                        //    }
-                        //    else if (listBox1.SelectedIndex == 2)
-                        //    {
-                        //        median += data;
-                        //        data = data - gen_median;
-                        //        data = data + 128;
-                        //    }
-                        //    else if (listBox1.SelectedIndex == 3)
-                        //    {
-                        //        data = (8192 - data) / System.Convert.ToInt32(numericUpDown3.Value);
-                        //        data += System.Convert.ToInt32(trackBar1.Value);
-                        //        data = 255 - data;
-                        //    }
-                        //    if (data > 255)
-                        //    {
-                        //        data = 255;
-                        //    }
-                        //    if (data < 0)
-                        //    {
-                        //        data = 0;
-                        //    }
-                        //    newColor = Color.FromArgb(data, data, data);
-                        //}
-                        //else
-                        //{
-                        //    if (listBox1.SelectedIndex == 0)
-                        //    {
-                        //        if (median > data)
-                        //        {
-                        //            median = data;
-                        //        }
-                        //        data = data - gen_median;
-                        //    }
-                        //    else if (listBox1.SelectedIndex == 1)
-                        //    {
-                        //        if (median < data)
-                        //        {
-                        //            median = data;
-                        //        }
-                        //        data = 1280 - (gen_median - data);
-                        //    }
-                        //    else if (listBox1.SelectedIndex == 2)
-                        //    {
-                        //        median += data;
-                        //        data = data - gen_median;
-                        //        data = data + 128;
-                        //    }
-                        //    else if (listBox1.SelectedIndex == 3)
-                        //    {
-                        //        data = (8192 - data) / System.Convert.ToInt32(numericUpDown3.Value);
-                        //        data += System.Convert.ToInt32(trackBar1.Value) + ((1279 - 128) / 2);
-                        //        data = 1279 - data;
-                        //    }
-                        //    if (data > 1279)
-                        //        data = 1279;
-                        //    if (data < 0)
-                        //        data = 0;
-                        //    newColor = colors[data];
-                        //}
                         newColor = colors[((data % 255))];
                         if (numericUpDown2.Value == 1)
                         {
@@ -542,37 +467,31 @@ namespace PC_Terminal
             {
                 pictureBox1.Width = 80;
                 pictureBox1.Height = 60;
-                //pictureBox1.Location.X = (370 / 2) - 40;
             }
             else if (numericUpDown2.Value == 2)
             {
                 pictureBox1.Width = 160;
                 pictureBox1.Height = 120;
-                //pictureBox1.Location.X = (370 / 2) - 80;
             }
             else if (numericUpDown2.Value == 3)
             {
                 pictureBox1.Width = 240;
                 pictureBox1.Height = 180;
-                //pictureBox1.Location.X = (370 / 2) - 120;
             }
             else if (numericUpDown2.Value == 4)
             {
                 pictureBox1.Width = 320;
                 pictureBox1.Height = 240;
-                //pictureBox1.Location.X = (370 / 2) - 120;
             }
             else if (numericUpDown2.Value == 5)
             {
                 pictureBox1.Width = 400;
                 pictureBox1.Height = 300;
-                //pictureBox1.Location.X = (370 / 2) - 120;
             }
             else if (numericUpDown2.Value == 6)
             {
                 pictureBox1.Width = 80 * 6;
                 pictureBox1.Height = 60 * 6;
-                //pictureBox1.Location.X = (370 / 2) - 120;
             }
         }
     }
