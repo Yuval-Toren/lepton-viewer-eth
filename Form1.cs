@@ -170,15 +170,15 @@ namespace PC_Terminal
             // It's 4 because that gives out the best result
             // --> figured out by manually testing values
             var arbitary_readSize = 4;
+            var arbitary_readSize2 = 100;
             var rec_buff = new byte[tcpClient.ReceiveBufferSize];
-
             while (true)
             {
                 try
                 {
                     if (netstream.CanRead)
                     {
-                        netstream.Read(rec_buff, 0, arbitary_readSize);
+                        netstream.Read(rec_buff, 0, arbitary_readSize2);
                         for (var receive_buff_cnt = 0;
                             receive_buff_cnt < arbitary_readSize;
                             receive_buff_cnt++)
