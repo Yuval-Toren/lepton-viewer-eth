@@ -84,7 +84,7 @@ namespace PC_Terminal
                         netstream = tcpClient.GetStream();
                         reading();
                     });
-                    ts1.Text = "Connected";
+                    
                     BtnOnOff.Text = "Disconnect";
                     //ts1.Text = "Connected";
                 }
@@ -157,7 +157,7 @@ namespace PC_Terminal
             // It's 4 because that gives out the best result
             // --> figured out by manually testing values
             var arbitary_readSize = 1;
-            var arbitary_readSize2 = 100;
+            ts1.Text = "Connected";
             var rec_buff = new byte[tcpClient.ReceiveBufferSize];
             while (true)
             {
