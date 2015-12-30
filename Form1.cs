@@ -57,22 +57,9 @@ namespace PC_Terminal
             }
             colors[0] = Color.FromArgb(0, 0, 0); //black
 
-            listBox1.SelectedIndex = 0;
+           
         }
-        public Int32 init()
-        {
-            if (listBox1.SelectedIndex == 0)
-            {
-                return 0;
-            }
-            else if (listBox1.SelectedIndex == 1 || listBox1.SelectedIndex == 2)
-            {
-                return 0;
-            }
-            throw new Exception("y");
-        }
-        
-        
+
         // MOST IMPORTANT SHIT HERE START
         private void BtnOnOff_Click(object sender, EventArgs e)
         {
@@ -97,7 +84,7 @@ namespace PC_Terminal
                         netstream = tcpClient.GetStream();
                         reading();
                     });
-
+                    ts1.Text = "Connected";
                     BtnOnOff.Text = "Disconnect";
                     //ts1.Text = "Connected";
                 }
@@ -439,39 +426,24 @@ namespace PC_Terminal
             }
             Invoke((Action)(() =>
             {
-                if (listBox1.SelectedIndex == 0)
-                {
-                    label6.Text = "Coldest value: " + gen_median;
-                }
-                else if (listBox1.SelectedIndex == 1)
-                {
-                    label6.Text = "Heatest value: " + gen_median;
-                }
-                else if (listBox1.SelectedIndex == 2)
-                {
-                    label6.Text = "Median value: " + gen_median;
-                }
-                else if (listBox1.SelectedIndex == 3)
-                {
-                    label6.Text = "";
-                }
-
-                label1.Text = "" + trackBar1.Value;
-
                 pictureBox1.Image = img;
             }));
         }
         private void numericUpDown2_ValueChanged(object sender, EventArgs e)
         {
+           
+
             if (numericUpDown2.Value == 1)
             {
                 pictureBox1.Width = 80;
                 pictureBox1.Height = 60;
+                
             }
             else if (numericUpDown2.Value == 2)
             {
                 pictureBox1.Width = 160;
                 pictureBox1.Height = 120;
+                
             }
             else if (numericUpDown2.Value == 3)
             {
